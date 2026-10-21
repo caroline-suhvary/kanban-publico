@@ -415,3 +415,66 @@ commit;
 
 -- Este SQL não configura exclusão automática por inatividade nem envio de e-mails.
 -- Isso exige agendamento/Edge Function e política operacional separada.
+
+
+-- Função que apaga contas e Scrums sem acesso há mais de 30 dias
+CREATE OR REPLACE FUNCTION public.limpar_inativos()
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_usuarios_deletados integer := 0;
+  v_scrums_deletados integer := 0;
+BEGIN
+  -- 1. Identifica e exclui da tabela auth.users os usuários inativos há mais de 30 dias.
+  -- O ON DELETE CASCADE configurado no banco vai apagar automaticamente o perfil,
+  -- os scrums criados por ele, participações e cartões.
+  WITH usuarios_alvo AS (
+    SELECT id FROM auth.users
+    WHERE (
+      (last_sign_in_at IS NULL AND created_at < now() - interval '30 days')
+      OR
+      (last_sign_in_at < now() - interval '30 days')
+    )
+  ),
+  removidos AS (
+    DELETE FROM auth.users
+    WHERE id IN (SELECT id FROM usuarios_alvo)
+    RETURNING id
+  )
+  SELECT count(*) INTO v_usuarios_deletados FROM removidos;
+
+  -- 2. Exclui Scrums abandonados (onde nenhum membro acessou nos últimos 30 dias)
+  WITH scrums_alvo AS (
+    SELECT s.id FROM public.scrums s
+    WHERE s.criado_em < now() - interval '30 days'
+      AND NOT EXISTS (
+        SELECT 1 FROM public.scrum_membros sm
+        JOIN public.perfis p ON p.id = sm.usuario_id
+        WHERE sm.scrum_id = s.id
+          AND p.ultimo_acesso >= now() - interval '30 days'
+      )
+  ),
+  removidos_scrums AS (
+    DELETE FROM public.scrums
+    WHERE id IN (SELECT id FROM scrums_alvo)
+    RETURNING id
+  )
+  SELECT count(*) INTO v_scrums_deletados FROM removidos_scrums;
+
+  RETURN json_build_object(
+    'sucesso', true,
+    'usuarios_removidos', v_usuarios_deletados,
+    'scrums_removidos', v_scrums_deletados,
+    'executado_em', now()
+  );
+END;
+$$;
+
+-- Permite que apenas a service_role (usada pela action) execute essa limpeza
+REVOKE ALL ON FUNCTION public.limpar_inativos() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.limpar_inativos() FROM authenticated;
+REVOKE ALL ON FUNCTION public.limpar_inativos() FROM anon;
+GRANT EXECUTE ON FUNCTION public.limpar_inativos() TO service_role;
