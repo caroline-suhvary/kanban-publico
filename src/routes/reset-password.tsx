@@ -1,0 +1,9 @@
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useEffect,useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+export const Route=createFileRoute('/reset-password')({head:()=>({meta:[{title:'Nova senha — Scrumbão'},{name:'description',content:'Redefina a senha da sua conta Scrumbão.'},{property:'og:title',content:'Nova senha — Scrumbão'},{property:'og:description',content:'Redefina sua senha com segurança.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:Reset});
+function Reset(){const [recovery,setRecovery]=useState(false);const [password,setPassword]=useState('');const [message,setMessage]=useState('');const [busy,setBusy]=useState(false);
+useEffect(()=>{setRecovery(new URLSearchParams(window.location.hash.slice(1)).get('type')==='recovery');},[]);
+return <main className="mx-auto max-w-md px-4 py-16"><h1 className="font-display text-3xl font-bold">Nova senha</h1>{recovery?<form className="mt-6 grid gap-4" onSubmit={async e=>{e.preventDefault();setBusy(true);const {error}=await supabase.auth.updateUser({password});setMessage(error?.message??'Senha atualizada.');setBusy(false);}}><label>Nova senha<Input type="password" minLength={8} required value={password} onChange={e=>setPassword(e.target.value)}/></label><Button disabled={busy}>Salvar senha</Button></form>:<p className="mt-4">Abra o link de recuperação enviado ao seu e-mail.</p>}<p role="status">{message}</p><Button asChild variant="link"><Link to="/">Voltar ao Scrumbão</Link></Button></main>;}

@@ -1,0 +1,12 @@
+# Scrumbão
+- [x] Entregar ZIP somente no chat; retirar ZIP público e endpoint de download.
+- [x] Remover botão de download do cabeçalho; nenhum botão de download no layout.
+- [x] Temas claro e Neon; demonstração pública isolada.
+- [x] Contas com e-mail/Google, nome e avatar; seleção e criação de Scrums.
+- [x] Equipes, convites na conta, saída, exclusão e clonagem; limites seguros.
+- [x] Banner de inatividade de 25–29 dias e ciclo Scrum persistente.
+- [x] SQL completo, README e pacote de código para download.
+- [x] Testes e verificação dos fluxos públicos e privados com contas de teste; privacidade e restrições de convidados confirmadas.
+- [ ] Envio de convites por e-mail: aguarda domínio remetente da Caroline.
+- [ ] Importação de dados/usuários antigos, caso existam: aguarda exportação CSV/JSON.
+- [ ] Verificação do Google com conta real: aguarda interação da Caroline; provedor habilitado.
