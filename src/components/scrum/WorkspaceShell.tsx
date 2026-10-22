@@ -150,125 +150,149 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="border-b-2 border-foreground bg-primary text-primary-foreground">
-        <div className="mx-auto max-w-7xl px-4 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 sm:gap-3">
-              <img
-                src="/logo.png"
-                alt="Logo Scrumbão"
-                className="h-10 w-10 sm:h-12 sm:w-12 aspect-square shrink-0 rounded-md object-cover shadow-sm"
-              />
-              <div className="flex flex-col min-w-0">
-                <h1 className="font-display text-2xl sm:text-3xl font-extrabold leading-tight tracking-tight">
-                  Scrumbão
-                </h1>
-                <p className="text-xs opacity-90 truncate max-w-[180px] sm:max-w-xs">
-                  {current?.nome ?? "App de receitas da vovó"}
-                </p>
-              </div>
+        <div className="flex min-h-[76px] w-full flex-wrap items-center justify-between gap-3 pr-4">
+          {/* Lado Esquerdo: Logo colado na borda + Título + Dropdown de Scrums */}
+          <div className="flex flex-1 flex-wrap items-center gap-3">
+            <img
+              src="/logo.png"
+              alt="Scrumbão"
+              className="h-[76px] w-[76px] aspect-square shrink-0 object-cover"
+            />
+
+            <div className="flex flex-col py-1">
+              <h1 className="font-display text-2xl sm:text-3xl font-extrabold leading-tight">
+                Scrumbão
+              </h1>
+              <p className="text-xs opacity-90 hidden sm:block">
+                {current?.nome ?? "App de receitas da vovó"}
+              </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Button variant="outline" className="text-foreground" onClick={() => setDark(!dark)}>
-                {dark ? <Sun /> : <Moon />}
-                {dark ? "Claro" : "Escuro"}
-              </Button>
-              {user ? (
-                <>
-                  <Button
-                    variant="outline"
-                    className="max-w-64 text-foreground"
-                    onClick={() => {
-                      setProfileName(profile?.nome ?? "");
-                      setAvatar(profile?.avatar_url ?? "");
-                      setAccount(true);
+            {/* Quando logado: o dropdown de Scrums e ações ficam aqui, ao lado do logo */}
+            {user && (
+              <div className="flex flex-1 flex-wrap items-center gap-2 min-w-[260px] max-w-2xl py-1">
+                <label className="min-w-0 flex-1 text-foreground">
+                  <span className="sr-only">Selecionar Scrum</span>
+                  <select
+                    aria-label="Selecionar Scrum"
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm font-medium"
+                    value={selected}
+                    onChange={(e) => {
+                      setSelected(e.target.value);
+                      setErro("");
                     }}
                   >
-                    {profile?.avatar_url && (
-                      <img
-                        src={profile.avatar_url}
-                        alt=""
-                        className="h-6 w-6 rounded-full object-cover"
-                      />
-                    )}
-                    <span className="truncate">{profile?.nome || user.email}</span>
-                  </Button>
+                    <option value="demo">Demonstração pública · App da vovó</option>
+                    <optgroup label={`Meus Scrums (${own.length}/2)`}>
+                      {own.map((s) => (
+                        <option value={s.id} key={s.id}>
+                          {s.nome}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label={`Scrums onde participo (${invited.length}/2)`}>
+                      {invited.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.nome}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </label>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-10 text-foreground shrink-0"
+                  disabled={!podeCriar(own.length) || busy}
+                  onClick={() => setCreate(true)}
+                  title="Criar novo Scrum"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Novo Scrum</span>
+                </Button>
+
+                {current && (
                   <Button
                     variant="outline"
-                    size="icon"
-                    className="text-foreground"
-                    aria-label="Sair"
-                    title="Sair"
-                    onClick={() =>
-                      run(async () => {
-                        await cache.cancelQueries();
-                        cache.clear();
-                        const { error } = await supabase.auth.signOut();
-                        if (error) throw error;
-                        setSelected("demo");
-                      })
-                    }
+                    size="sm"
+                    className="h-10 text-foreground shrink-0"
+                    onClick={() => setTeam(true)}
+                    title="Equipe do Scrum"
                   >
-                    <LogOut />
+                    <Users className="h-4 w-4 mr-1" />
+                    Equipe ({members.length}/6)
                   </Button>
-                </>
-              ) : (
-                <Button variant="outline" className="text-foreground" onClick={() => setAuth(true)}>
-                  Entrar / Criar conta
-                </Button>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
-          {user && (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <label className="min-w-0 flex-1 text-foreground">
-                <span className="sr-only">Selecionar Scrum</span>
-                <select
-                  aria-label="Selecionar Scrum"
-                  className="h-10 w-full max-w-xl rounded-md border border-input bg-background px-3"
-                  value={selected}
-                  onChange={(e) => {
-                    setSelected(e.target.value);
-                    setSim(null);
-                    setErro("");
+
+          {/* Lado Direito: Tema Claro/Escuro + Perfil / Sair */}
+          <div className="flex items-center gap-2 py-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 text-foreground"
+              onClick={() => setDark(!dark)}
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              <span className="hidden sm:inline ml-1">{dark ? "Claro" : "Escuro"}</span>
+            </Button>
+
+            {user ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-10 max-w-56 text-foreground gap-2"
+                  onClick={() => {
+                    setProfileName(profile?.nome ?? "");
+                    setAvatar(profile?.avatar_url ?? "");
+                    setAccount(true);
                   }}
                 >
-                  <option value="demo">Demonstração pública · App da vovó</option>
-                  <optgroup label={`Meus Scrums (${own.length}/2)`}>
-                    {own.map((s) => (
-                      <option value={s.id} key={s.id}>
-                        {s.nome}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label={`Scrums onde participo (${invited.length}/2)`}>
-                    {invited.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.nome}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-              </label>
+                  {profile?.avatar_url && (
+                    <img
+                      src={profile.avatar_url}
+                      alt=""
+                      className="h-5 w-5 rounded-full object-cover"
+                    />
+                  )}
+                  <span className="truncate">{profile?.nome || user.email}</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 text-foreground shrink-0"
+                  aria-label="Sair"
+                  title="Sair"
+                  onClick={() =>
+                    run(async () => {
+                      await cache.cancelQueries();
+                      cache.clear();
+                      const { error } = await supabase.auth.signOut();
+                      if (error) throw error;
+                      setSelected("demo");
+                    })
+                  }
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
               <Button
                 variant="outline"
-                className="text-foreground"
-                disabled={!podeCriar(own.length) || busy}
-                onClick={() => setCreate(true)}
+                className="h-10 text-foreground"
+                onClick={() => setAuth(true)}
               >
-                <Plus />
-                Criar novo Scrum
+                Entrar / Criar conta
               </Button>
-              {current && (
-                <Button variant="outline" className="text-foreground" onClick={() => setTeam(true)}>
-                  <Users />
-                  Equipe ({members.length}/6)
-                </Button>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </header>
+
       <div className="mx-auto max-w-7xl px-4">
         {erro && (
           <p role="alert" className="mt-4 text-destructive">
