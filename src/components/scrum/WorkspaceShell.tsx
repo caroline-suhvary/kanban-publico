@@ -156,7 +156,7 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
             <img
               src="/logo.jpeg"
               alt="Scrumbão"
-              className="h-[76px] w-[76px] aspect-square shrink-0 object-cover"
+              className="h-[80px] w-[80px] aspect-square shrink-0 object-cover"
             />
 
             <div className="flex flex-col py-1">
