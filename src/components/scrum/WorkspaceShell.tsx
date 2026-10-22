@@ -152,10 +152,22 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
       <header className="border-b-2 border-foreground bg-primary text-primary-foreground">
         <div className="mx-auto max-w-7xl px-4 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="font-display text-3xl font-extrabold">Scrumbão</h1>
-              <p className="text-sm">{current?.nome ?? "App de receitas da vovó"}</p>
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <img
+                src="/logo.png"
+                alt="Logo Scrumbão"
+                className="h-10 w-10 sm:h-12 sm:w-12 aspect-square shrink-0 rounded-md object-cover shadow-sm"
+              />
+              <div className="flex flex-col min-w-0">
+                <h1 className="font-display text-2xl sm:text-3xl font-extrabold leading-tight tracking-tight">
+                  Scrumbão
+                </h1>
+                <p className="text-xs opacity-90 truncate max-w-[180px] sm:max-w-xs">
+                  {current?.nome ?? "App de receitas da vovó"}
+                </p>
+              </div>
             </div>
+
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="outline" className="text-foreground" onClick={() => setDark(!dark)}>
                 {dark ? <Sun /> : <Moon />}
@@ -325,24 +337,9 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
           </section>
         )}
         {selected === "demo" && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground">
-            <span>Demonstração pública · dados apenas neste navegador</span>
-            <label className="flex items-center gap-2">
-              Inatividade do criador
-              <select
-                aria-label="Simular inatividade"
-                className="rounded border border-input bg-background p-1 text-foreground"
-                value={sim ?? ""}
-                onChange={(e) => setSim(e.target.value ? +e.target.value : null)}
-              >
-                <option value="">Sem alerta</option>
-                {[5, 4, 3, 2, 1].map((n) => (
-                  <option key={n} value={n}>
-                    {30 - n} dias ausente
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="border-b py-2 text-xs text-muted-foreground">
+            App da Vovó é uma demonstração pública para treinamento e você pode fazer alterações. As
+            modificações não serão salvas.
           </div>
         )}
       </div>
