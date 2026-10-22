@@ -150,11 +150,11 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="border-b-2 border-foreground bg-primary text-primary-foreground">
-        <div className="flex min-h-[76px] w-full flex-wrap items-center justify-between gap-3 pr-4">
+        <div className="flex min-h-[80px] w-full flex-wrap items-center justify-between gap-3 pr-4">
           {/* Lado Esquerdo: Logo colado na borda + Título + Dropdown de Scrums */}
           <div className="flex flex-1 flex-wrap items-center gap-3">
             <img
-              src="/logo.png"
+              src="/logo.jpeg"
               alt="Scrumbão"
               className="h-[76px] w-[76px] aspect-square shrink-0 object-cover"
             />
